@@ -8,10 +8,11 @@ SRCS = $(wildcard $(SRC)/*.c)
 OBJS = $(addprefix $(OBJ)/, $(notdir $(SRCS:.c=.o)))
 
 CC = gcc
-DEBUGGER = gdb
+DEBUGGER = gdb-multiarch
 RM      = rm -rf
 MKDIR   = @mkdir -p $(@D)
-CFLAGS = -I$(INC) -g3
+CFLAGS = -I$(INC) -g3 -MMD -MP
+LDFLAGS = -g3
 
 all: $(ODIR)/$(ONAME)
 
@@ -21,15 +22,16 @@ debug:
 clean:
 	-$(RM) $(OBJ)
 	-$(RM) $(ODIR)
-	-$(RM) $(EOBJ)
 
 $(ODIR)/$(ONAME): $(OBJS)
 	$(MKDIR)
-	$(CC) -o $(ODIR)/$(ONAME) $^ $(CFLAGS)
+	$(CC) -o $(ODIR)/$(ONAME) $^ $(LDFLAGS) 
 
 $(OBJ)/%.o: $(SRC)/%.c
 	$(MKDIR)   
-	$(CC) -o $@ $^ -c $(CFLAGS)
+	$(CC) -o $@ $< -c $(CFLAGS)
+
+-include $(OBJS:.o=.d)
 
 .PHONY: clean
 
