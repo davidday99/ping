@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "in.h": "c",
+        "*.tcc": "c",
+        "limits": "c",
+        "algorithm": "c",
+        "icmp6.h": "c"
+    }
+}
