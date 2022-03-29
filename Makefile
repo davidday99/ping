@@ -15,6 +15,8 @@ CFLAGS = -I$(INC) -g3 -MMD -MP
 LDFLAGS = -g3
 
 all: $(ODIR)/$(ONAME)
+	sudo chown root:root $<
+	sudo chmod u+s $<
 
 debug:
 	$(DEBUGGER) --tui $(ODIR)/$(ONAME)
