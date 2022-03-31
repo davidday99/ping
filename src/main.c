@@ -25,10 +25,18 @@ struct in_addr get_host_address(char *name) {
     return dst;   
 }
 
-void print_icmp_echo_reply(icmp_echo *echo, int ttl, char *hostname, struct in_addr dst) {
-    printf("%lu bytes from %s (%s): icmp_seq=%d ttl=%d time=%d ms\n",
+double get_elapsed_usec_in_ms(suseconds_t start) {
+    struct timeval current;
+    gettimeofday(&current, NULL);
+    return ((double) (current.tv_usec - start)) / 1000; 
+}
+
+void print_icmp_echo_reply(icmp_echo *echo, char *hostname, struct in_addr dst, int ttl) {
+    suseconds_t ts = retrieve_timestamp(echo);
+    double elapsed_ms = get_elapsed_usec_in_ms(ts); 
+    printf("%lu bytes from %s (%s): icmp_seq=%d ttl=%d time=%.3lf ms\n",
             sizeof(icmp_echo), hostname, inet_ntoa(dst), ntohs(echo->header.seqnum),
-            ttl, 0);
+            ttl, elapsed_ms);
 }
 
 icmp_echo *process_packet(struct ip *packet) {
@@ -68,13 +76,14 @@ int main(int argc, char *argv[]) {
     printf("PING %s (%s)\n", hostname, ip_string);
 
     while (1) {
+        timestamp_icmp_echo(&request); 
         sendto(s, &request, sizeof(icmp_echo), 0, (struct sockaddr *) &dst_addr, sizeof(dst_addr)); 
         sleep(1);
         recvfrom(s, buf, sizeof(buf), 0, &sin_addr, &len);  
         struct ip *packet = (struct ip *) buf;
         icmp_echo *reply = process_packet(packet);
         if (verify_icmp_echo_reply(&request, reply)) {
-            print_icmp_echo_reply(&request, packet->ip_ttl, hostname, ip);
+            print_icmp_echo_reply(&request, hostname, ip, packet->ip_ttl);
             increment_icmp_echo_seqnum(&request); 
         }
     }
